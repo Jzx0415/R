@@ -1,0 +1,130 @@
+---
+title: '4'
+author: "Jiang"
+date: "2021/10/19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 3
+
+35 times with all red:
+
+
+```{r,echo=TRUE}
+library(tidyverse)
+library(Stat2Data)
+choose(8,3)
+
+prob_red_spheres <- function(z){
+  a<-choose(35,z)*0.3^z*0.7^(35-z)
+  return(a)
+}
+
+num_reds <- seq(1,35,1)
+
+prob_by_num_reds<-data.frame(num_reds)%>%
+  mutate(prob=map_dbl(num_reds,prob_red_spheres))
+prob_by_num_reds%>%head(3)
+
+plot <- ggplot(data=prob_by_num_reds,aes(x=num_reds,y=prob))+xlab("Number of reds")+geom_line()+ylab("Probability")
+plot
+
+## Setting the random seed just once
+set.seed(0)
+for(i in 1:5){
+print(sample(100,5,replace=FALSE))
+3
+# The result may well differ every time
+}
+## Resetting the random seed every time
+for(i in 1:5){
+set.seed(1)
+print(sample(100,5,replace=FALSE))
+# The result should not change
+}
+
+find <-function(a){
+  sum=0
+  for(i in a){
+    if(i<=3){
+      sum=sum+1
+    }
+  }
+  return(sum)
+}
+
+num_trials<-1000 # set the number of trials
+set.seed(0) # set the random seed
+sampling_with_replacement_simulation<-data.frame(trial=1:num_trials)%>%
+mutate(sample_balls=map(.x=trial,~sample(10,35,replace = TRUE)))%>%
+mutate(num_reds=map_dbl(sample_balls,find))
+# generate collection of num_trials simulations
+
+num_reds_in_simulation<-sampling_with_replacement_simulation%>%pull(num_reds)
+
+
+sampling_with_replacement_simulation%>%head(5)
+
+prob_by_num_reds<-prob_by_num_reds%>%
+mutate(simulation_count=map_dbl(.x=num_reds,~sum(num_reds_in_simulation==.x)))
+
+prob_by_num_reds<-prob_by_num_reds%>%
+mutate(expected_count=num_trials*prob)
+# add a column which gives the expected number of reds
+# based on the probability formula
+
+prob_by_num_reds%>%
+rename(Simulation=simulation_count,Expected=expected_count)%>%
+pivot_longer(cols=c("Simulation","Expected"),
+names_to="Type",values_to="count")%>%
+ggplot(aes(num_reds,count)) +
+geom_line(aes(linetype=Type, color=Type)) +
+scale_linetype_manual(values = c("solid", "dashed"))+
+theme_bw()+
+xlab("Number of reds")+
+ylab("Count")
+
+
+```
+
+## 4
+```{r,echo=TRUE}
+num_trials<-100000 # set the number of trials
+set.seed(0) # set the random seed
+
+lack <- function(z){
+  r<-0
+  g<-0
+  b<-0
+  for(i in z){
+    if(i<=50){
+      r=1
+    }
+    if(i>50 || i<=70){
+      g=1
+    }
+    if(i>70){
+      b=1
+    }
+  }
+  sum=r+g+b
+  if(sum<3){
+    return(TRUE)
+  }
+  else{
+    return(FALSE)
+  }
+}
+
+sampling_without_replacement_simulation<-data.frame(trial=1:num_trials)%>%
+mutate(sample_balls=map(.x=trial,~sample(100,10,replace = FALSE)))%>%
+mutate(if_lack_colors=map_lgl(sample_balls,lack))
+# generate collection of num_trials simulations
+
+
+sampling_without_replacement_simulation[which(sampling_without_replacement_simulation$if_lack_color==TRUE),]
+```

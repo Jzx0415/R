@@ -1,7 +1,7 @@
 ---
-title: '2'
+title: "4 test"
 author: "Jiang"
-date: "2021/10/12"
+date: "2021/10/19"
 output: html_document
 ---
 
@@ -15,12 +15,14 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r,echo=TRUE}
+```{r echo=TRUE}
 library(tidyverse)
 library(Stat2Data)
-data("Hawks")
-hawksSmall<-drop_na(select(Hawks,Age,Day,Month,Year,CaptureTime,Species,Wing,Weight,Tail))
-head(hawksSmall)
+num_reds <- seq(1,35,1)
+
+prob_by_num_reds<-data.frame(num_reds)%>%
+  mutate(prob=map_dbl(num_reds,prob_red_spheres))
+prob_by_num_reds%>%head(3)
 ```
 
 ## Including Plots

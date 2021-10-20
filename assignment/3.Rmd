@@ -77,7 +77,9 @@ df_combined<-rbind(df_xy,df_xy_missing,df_xy_impute)
 ggplot(df_combined,aes(x=x,y=y,color=source))+geom_point()+
 facet_wrap(~source)+geom_smooth(method="lm")
 ```
+
 ## 2.2
+
 ```{r,echo=TRUE}
 library(readxl)
 folder_path<-"D:/Github/R/R/assignment/"
