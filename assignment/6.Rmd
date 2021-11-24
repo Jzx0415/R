@@ -1,0 +1,61 @@
+---
+title: '6'
+author: "Jiang"
+date: "2021/11/23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=TRUE}
+library(tidyverse)
+library(Stat2Data)
+data("Hawks")
+RedTailedDf<-Hawks%>%filter(Species=="RT")%>%select(Weight,Tail,Wing)
+RedTailedDf
+tail_RT<-RedTailedDf%>%pull(Tail)
+n<-length(tail_RT)
+
+mu_mle_RT<-mean(tail_RT,na.rm = TRUE)
+var_mle_RT<-var(tail_RT,na.rm = TRUE)*((n-1)/n)
+sigma_mle_RT<-sqrt(var_mle_RT)
+
+
+tail_inc<-seq(mu_mle_RT-3*sigma_mle_RT,
+              mu_mle_RT+3*sigma_mle_RT,sigma_mle_RT*0.001)
+colors<-c("MLE density"="red","Kernal density"="blue")
+ggplot()+
+  geom_line(data =data.frame(tail=tail_inc,Density=dnorm(tail_inc,mean=mu_mle_RT,sd=sigma_mle_RT)),aes(x=tail,y=Density,color="MLE density"))+
+  geom_density(data=data.frame(tail_RT=tail_RT),aes(x=tail_RT,color="Kernal density"))+
+  labs(y="Tail length (mm)",color="Estimator")+
+  theme_bw()+scale_color_manual(values=colors)
+```
+
+```{r,echo=TRUE}
+
+set.seed(0)
+num_trials_per_sample_size<-100
+min_sample_size<-5
+max_sample_size<-1000
+sample_size_inc<-5
+mu_0<-1
+sigma_0<-3
+simulation_df<-crossing(trial=seq(num_trials_per_sample_size),sample_size=seq(min_sample_size,max_sample_size,sample_size_inc))%>%
+mutate(simulation=pmap(.l=list(trial,sample_size),.f=~rnorm(.y,mean=mu_0,sd=sigma_0)))%>%
+mutate(sample_md=map_dbl(.x=simulation,.f=median))%>%
+mutate(sample_mn=map_dbl(.x=simulation,.f=mean))%>%
+group_by(sample_size)%>%
+summarise(msq_error_md=mean((sample_md-mu_0)^2),
+          msq_error_mn=mean((sample_mn-mu_0)^2))
+simulation_df
+
+simulation_df%>%
+pivot_longer(cols=c(msq_error_md,msq_error_mn),
+names_to="Estimator",values_to="msq_error")%>%
+mutate(Estimator=case_when(Estimator=="msq_error_md"~"Median",
+Estimator=="msq_error_mn"~"Mean"))%>%
+ggplot(aes(x=sample_size,y=msq_error,color=Estimator,linetype=Estimator))+
+geom_smooth()+theme_bw()+xlab("Sample size")+ylab("Mean square error")
+```
